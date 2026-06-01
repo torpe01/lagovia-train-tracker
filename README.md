@@ -1,50 +1,63 @@
-# 🚆 Lagovia Train Tracker — Backend API
+# 🚆 Lagovia Train Tracker
 
-A Node.js/Express API that returns real-time Belgian train departures, powered by the free [iRail API](https://docs.irail.be/).
+Real-time Belgian train departure tracker, powered by the free [iRail API](https://docs.irail.be/).
+
+Built for the Digital Product School Engineering Track Technical Challenge.
+
+```
+lagovia/
+├── api/          ← Node.js + Express backend
+├── frontend/     ← React frontend
+└── package.json  ← root scripts to run both together
+```
 
 ---
 
-## How to install and run locally
+## Quick start (run both together)
 
 ### Prerequisites
 - Node.js >= 18 ([download](https://nodejs.org))
-- Git
 
-### Steps
+### Install & run
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/YOUR_USERNAME/lagovia-api.git
-cd lagovia-api
+# 1. Clone
+git clone https://github.com/YOUR_USERNAME/lagovia-train-tracker.git
+cd lagovia-train-tracker
 
-# 2. Install dependencies
-npm install
+# 2. Install all dependencies (root + api + frontend)
+npm run install:all
 
-# 3. Start the server
-npm start
-# Running on http://localhost:3000
-
-# For development with auto-restart:
+# 3. Run both API and frontend together
 npm run dev
 ```
 
-### Try it
+- **API** → http://localhost:3000
+- **Frontend** → http://localhost:3001
+
+---
+
+## Run them separately
 
 ```bash
-curl "http://localhost:3000/departures?q=Bru"
-curl "http://localhost:3000/health"
-curl "http://localhost:3000/departures?q=Br"  # error: too short
+# API only
+npm run start:api
+
+# Frontend only (needs API running)
+npm run start:frontend
 ```
 
 ---
 
 ## API Reference
 
-### GET /departures?q=<query>
+### `GET /departures?q=<query>`
 
-Returns departures (next 15 min) from all stations matching the substring.
+Returns all departures in the next 15 minutes from every station matching the query.
 
-**Success 200:**
+- Query must be **at least 3 characters**, otherwise returns a `400` error.
+
+**Success `200`:**
 ```json
 {
   "query": "Bru",
@@ -72,7 +85,7 @@ Returns departures (next 15 min) from all stations matching the substring.
 }
 ```
 
-**Error 400 — query too short:**
+**Error `400` — query too short:**
 ```json
 {
   "error": "QUERY_TOO_SHORT",
@@ -82,8 +95,7 @@ Returns departures (next 15 min) from all stations matching the substring.
 }
 ```
 
-### GET /health
-
+### `GET /health`
 ```json
 { "status": "ok", "timestamp": "2024-06-01T10:30:00.000Z" }
 ```
@@ -92,19 +104,21 @@ Returns departures (next 15 min) from all stations matching the substring.
 
 ## Decisions & trade-offs
 
-- **Station search**: Fetches the full iRail station list and filters client-side. iRail caches this via ETags so it's cheap.
-- **Rate limits**: Capped at 6 parallel liveboard requests to stay within iRail's 3 req/sec + 5 burst limit.
-- **15-minute window**: Filtered on `scheduledTime` (not scheduledTime + delay), matching the spec exactly.
-- **No caching**: Fresh per request. A Redis 30s cache per station would help in production.
+- **Monorepo**: single repo for easy submission and review — one `git clone` and you're running.
+- **Proxy**: the React frontend proxies `/departures` to `localhost:3000` in development via `package.json "proxy"`, so no hardcoded URLs or CORS issues.
+- **Station search**: full station list fetched from iRail and filtered client-side. iRail caches this endpoint aggressively via ETags.
+- **Rate limiting**: capped at 6 parallel liveboard requests to respect iRail's 3 req/sec limit.
+- **15-minute window**: filtered on `scheduledTime`, matching the spec exactly.
 
 ## Known limitations
 
-- Results capped at 6 stations per search
-- No fuzzy search (bonus feature not implemented)
+- Station results capped at 6 per search (rate limit safety)
+- No fuzzy search (bonus feature, not implemented)
+- No server-side caching (a Redis 30s cache would help in production)
 
 ## Time spent
 
-~2 hours: 30min docs, 60min coding, 30min README.
+~3 hours total: 30min reading iRail docs, 90min coding, 30min UI, 30min docs.
 
 ## AI Usage
 
