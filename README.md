@@ -22,7 +22,7 @@ lagovia/
 
 ```bash
 # 1. Clone
-git clone https://github.com/YOUR_USERNAME/lagovia-train-tracker.git
+git clone https://github.com/torpe01/lagovia-train-tracker.git
 cd lagovia-train-tracker
 
 # 2. Install all dependencies (root + api + frontend)
